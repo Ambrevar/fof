@@ -120,13 +120,45 @@ If PARENT-DIRECTORY is not a parent of PATH, return PATH."
       (subseq (path file) (length parent-directory))
       (path file)))
 
+(defun shorten-home (path)
+  (let ((home (uiop:getenv "HOME")))
+    (if (str:starts-with? home path)
+        (str:replace-first home "~" path)
+        path)))
+
+(defun shorten-path (path &key (abbreviation-length 1) ; TODO: Is there a library for this?
+                            (abbreviate-home t)
+                            (ellipsis "…"))
+  (let* ((path (if abbreviate-home
+                   (shorten-home path)
+                   path))
+         (elements
+           (str:split (separator) path
+                      :omit-nulls t)))
+    (str:concat (when (str:starts-with? (separator) path)
+                  (separator))
+                (str:join
+                 (separator)
+                 (append
+                  (mapcar (lambda (dir)
+                            (if (<= (length dir) (+ abbreviation-length (length ellipsis)))
+                                dir
+                                (str:concat
+                                 (subseq dir 0 abbreviation-length)
+                                 ellipsis)))
+                          (butlast elements))
+                  (list (first (last elements)))))
+                (when (str:ends-with? (separator) path)
+                  (separator)))))
+
 ;; TODO: Support `*print-pretty*'?
 ;; TODO: `*print-readably*'?
+;; TODO: Print extra data, like size and date?
+;; TODO: Auto-update file when mtime changes?  Wouldn't it be too slow?
 (defmethod print-object ((file file) stream)
-  (print-unreadable-object (file stream :type t :identity t)
-    (write-string (str:concat (basename file)
-                              (when (directory? file) "/"))
-                  stream)))
+  (format stream "#F\"~a~a\""
+          (shorten-path (path file) :abbreviation-length 2)
+          (if (directory? file) "/" "")))
 
 (export-always 'file)
 (defmethod initialize-instance :after ((file file) &key)
