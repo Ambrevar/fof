@@ -194,6 +194,25 @@ If PARENT-DIRECTORY is not a parent of PATH, return PATH."
 (defun file (path)
   (make-instance 'file :path path))
 
+(defun read-until (stream delimiter)
+  "Return the string read until DELIMITER."
+  (concatenate 'string
+               (loop :for char = (read-char stream nil :eof)
+                     :while (and (not (eq char :eof))
+                                 (not (char= char delimiter)))
+                     :collect char)))
+
+(defun file-reader (stream char1 char2)
+  (declare (ignore char1 char2))
+  (read-until stream #\")
+  (file (read-until stream #\")))
+
+(export-always 'readtable)
+(named-readtables:defreadtable readtable
+  (:merge :standard)
+  (:dispatch-macro-char #\# #\f #'file-reader))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (export-always 'list-directory)
 (defun list-directory (&optional (path *default-pathname-defaults*) sort)
   "Return entries in PATH.
