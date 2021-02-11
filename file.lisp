@@ -3,6 +3,7 @@
   (:use #:common-lisp)
   (:import-from #:alexandria)
   (:import-from #:hu.dwim.defclass-star #:defclass*)
+  (:import-from #:local-time)
   (:import-from #:magicffi)
   (:import-from #:serapeum #:export-always)
   (:import-from #:str)
@@ -151,14 +152,41 @@ If PARENT-DIRECTORY is not a parent of PATH, return PATH."
                 (when (str:ends-with? (separator) path)
                   (separator)))))
 
+
+(defparameter +ls-time-format+
+  '(:short-month #\space (:day 2 #\ ) #\space  (:hour 2) #\: (:min 2)))
+
+(defun make-object-printer (&key (abbreviation-length 2) size? date?)
+  (lambda (file stream)
+    (format stream "#F\"~a~a~a\""
+            (if (= 0 abbreviation-length)
+                (path file)
+                (shorten-path (path file) :abbreviation-length abbreviation-length))
+            (if (directory? file) "/" "")
+            (str:concat
+             (when size?
+               (str:concat " " (sera:format-human-size nil (size file) :space nil)))
+             (when date?
+               (str:concat " " (local-time:format-timestring nil (modification-date file)
+                                                             :format +ls-time-format+)))))))
+
 ;; TODO: Support `*print-pretty*'?
 ;; TODO: `*print-readably*'?
-;; TODO: Print extra data, like size and date?
 ;; TODO: Auto-update file when mtime changes?  Wouldn't it be too slow?
 (defmethod print-object ((file file) stream)
-  (format stream "#F\"~a~a\""
-          (shorten-path (path file) :abbreviation-length 2)
-          (if (directory? file) "/" "")))
+  (funcall (make-object-printer) file stream))
+
+(defun print-object-default ()
+  (defmethod print-object ((file file) stream)
+    (funcall (make-object-printer) file stream)))
+
+(defun print-object-with-size ()
+  (defmethod print-object ((file file) stream)
+    (funcall (make-object-printer :size? t) file stream)))
+
+(defun print-object-with-date ()
+  (defmethod print-object ((file file) stream)
+    (funcall (make-object-printer :size? t :date? t) file stream)))
 
 (export-always 'file)
 (defmethod initialize-instance :after ((file file) &key)
