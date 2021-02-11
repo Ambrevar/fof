@@ -1,12 +1,12 @@
 (uiop:define-package fof/file
   (:documentation "File class.")
   (:use #:common-lisp)
-  ;; (:use #:trivia) ; TODO: Unused?
   (:import-from #:alexandria)
   (:import-from #:hu.dwim.defclass-star #:defclass*)
   (:import-from #:magicffi)
   (:import-from #:serapeum #:export-always)
-  (:import-from #:str))
+  (:import-from #:str)
+  (:import-from #:trivia #:match))
 (in-package fof/file)
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (trivial-package-local-nicknames:add-package-local-nickname :alex :alexandria)
@@ -238,6 +238,10 @@ Second value is the list of directories, third value is the non-directories."
 (defvar *finder-constructor* #'file
   "Function that takes a path and returns a `file'-like object.")
 
+;; TODO: Add key-args:
+;; - Include dirs or not.
+;; - Max depth.
+;; - Predicates.
 (export-always 'walk)
 (defun walk (root &rest predicates)
   "List FILES (including directories) that satisfy all PREDICATES.
@@ -253,18 +257,41 @@ Without PREDICATES, list all files."
                                                            (uiop:directory-files subdirectory)))))
                              (if predicates
                                  (delete-if (lambda (file)
-                                              (notany (lambda (pred) (funcall pred file))
-                                                      predicates))
+                                              (notevery (lambda (pred) (funcall pred file))
+                                                        predicates))
                                             subfiles)
                                  subfiles))))))
     result))
 
 (export-always 'finder)
-(defun finder (root &rest predicates)
-  "List files in ROOT that satisfy all PREDICATES.
-Without PREDICATES, list all files."
-  (let ((*finder-include-directories* nil))
-    (apply #'walk root predicates)))
+(defun finder (&rest predicate-specifiers) ; TODO: Add convenient regexp support?  Case-folding?
+  "List files in current directory that satisfy all PREDICATE-SPECIFIERS
+Without PREDICATE-SPECIFIERS, list all files.
+
+A predicate specifier can be:
+
+- a string, in which case it is turned into (match-path STRING);
+- a pathname, in which case it is turned into (match-path-end PATHNAME);
+- a list of predicates, in which case it is turned into (apply #'alexandria:disjoin PREDICATES);
+- a function (a predicate)."
+  (labels ((specifier->predicate (specifier)
+             (match specifier
+               ((and s (type string))
+                (match-path s))
+               ((and s (type pathname))
+                (match-path-end s))
+               ((cons pred1 more-preds)
+                (apply #'alex:disjoin
+                       (mapcar #'specifier->predicate
+                               (cons pred1 more-preds))))
+               ((and pred (type function))
+                pred)
+               (other
+                (error "Unknown predicate specifier: ~a" other)))))
+    (let ((*finder-include-directories* nil))
+      (apply #'walk *default-pathname-defaults*
+             (mapcar #'specifier->predicate
+                     predicate-specifiers)))))
 
 (defun match-date< (timestamp)
   "Return a file predicate that matches on modification time #'< than timestamp."
@@ -284,6 +311,26 @@ Useful for `finder'."
     (some (lambda (ext)
             (string= ext (extension file)))
           (cons extension more-extensions))))
+
+(export-always 'match-path)
+(defun match-path (path-element &rest more-path-elements)
+  "Return a predicate that matches when one of the path elements is contained in
+the file path.
+Useful for `finder'."
+  (lambda (file)
+    (some (lambda (elem)
+            (str:contains? elem (path file)))
+          (cons path-element more-path-elements))))
+
+(export-always 'match-path-end)
+(defun match-path-end (path-suffix &rest more-path-suffixes)
+  "Return a predicate that matches when one of the path suffixes is contained in
+the file path.
+Useful for `finder'."
+  (lambda (file)
+    (some (lambda (suffix)
+            (str:ends-with? (namestring suffix) (path file)))
+          (cons path-suffix more-path-suffixes))))
 
 (export-always 'match-name)
 (defun match-name (name &rest more-names)
