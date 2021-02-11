@@ -1,0 +1,5 @@
+#+TITLE FOF
+#+SUBTITLE File-object finder
+
+*Warning:* This library is currently experimental.  While perfectly usable as
+ is, the application programming interface is prone to change in the future.
