@@ -84,7 +84,7 @@ If none, return the empty string unlike `pathname-type'."
 (defun file=? (file1 file2)
   "Return true if FILE1 and FILE2 point to the same file.
 They might not be the same objects."
-  (and (file? file1) (file? file2)
+  (and (typep file1 'file) (typep file2 'file)
        (string= (path file1)
                 (path file2))))
 
