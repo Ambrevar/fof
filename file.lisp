@@ -84,6 +84,10 @@
                           (path file)))
   (setf (slot-value file 'modification-date) timestamp))
 
+(defmethod (setf permissions) (permissions (file file))
+  (setf (osicat:file-permissions (path file)) permissions)
+  (setf (slot-value file 'permissions) permissions))
+
 (defmethod path ((s string))
   "Useful so that `path' can be called both on a `file' or a `string'."
   s)
