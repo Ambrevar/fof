@@ -13,11 +13,10 @@
   (trivial-package-local-nicknames:add-package-local-nickname :alex :alexandria)
   (trivial-package-local-nicknames:add-package-local-nickname :sera :serapeum))
 
-(defvar *chown-command* "chown")
 (defvar *touch-command* "touch") ; TODO: `utime' syscall binding is missing from Osicat.
 
 ;; TODO: Run multiple disk writes within a transation?
-;; Need proper POSIX bindings.  Can Osicat do that?
+;; Need proper POSIX bindings.  Can Osicat do all of them?
 ;; Could we edit files virtually?  Does that even make sense?
 
 ;; TODO: Implement disk-usage for directories.
@@ -59,14 +58,12 @@
     (:export-slot-names-p t)
     (:export-class-name-p t))
 
-;; TODO: Rewrite user-id and group-id using `osicat-posix::chown'.
 (defmethod (setf user-id) (id (file file))
-  (uiop:run-program (list *chown-command* (write-to-string id) (path file)))
+  (osicat-posix::chown (path file) id (group-id file))
   (setf (slot-value file 'user-id) id))
 
 (defmethod (setf group-id) (id (file file))
-  (uiop:run-program (list *chown-command* (format nil "~a:~a" (user-id file) id)
-                          (path file)))
+  (osicat-posix::chown (path file) (user-id file) id)
   (setf (slot-value file 'group-id) id))
 
 ;; TODO: For now, date setters rely on GNU touch.  Find a portable version.
