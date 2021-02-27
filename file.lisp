@@ -158,7 +158,9 @@ If PARENT-DIRECTORY is not a parent of PATH, return PATH."
             (if (= 0 abbreviation-length)
                 (path file)
                 (shorten-path (path file) :abbreviation-length abbreviation-length))
-            (if (directory? file) "/" "")
+            (if (and (directory? file)
+                     (not (str:ends-with? "/" (path file))))
+                "/" "")
             (str:concat
              (when size?
                (str:concat " " (sera:format-human-size nil (size file) :space nil)))
