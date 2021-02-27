@@ -107,6 +107,23 @@ This returns the directory name for directories."
     (subseq path
             (1+ last-separator))))
 
+(export-always 'parent)
+(defmethod parent ((file file))
+  "Return the parent directory of FILE."
+  (file
+   (if (directory? file)
+       (uiop:pathname-parent-directory-pathname (path file))
+       (uiop:pathname-directory-pathname (path file)))))
+
+(defun depth (file parent)
+  (cond
+    ((file=? file parent)
+     0)
+    ((file=? file (parent file))
+     0)
+    (t
+     (1+ (depth (parent file) parent)))))
+
 (export-always 'relative-path)
 (defmethod relative-path ((file file) &optional (parent-directory *default-pathname-defaults*))
   "Return PATH relative to PARENT-DIRECTORY.
