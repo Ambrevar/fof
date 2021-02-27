@@ -14,50 +14,48 @@
 ;;   (trivial-package-local-nicknames:add-package-local-nickname :sera :serapeum))
 
 
-(defun match-date< (timestamp)
+(export-always 'date<)
+(defun date< (timestamp)
   "Return a file predicate that matches on modification time #'< than timestamp."
   (lambda (file)
     (local-time:timestamp< (modification-date file) timestamp)))
 
-(defun match-date> (timestamp)
+(export-always 'date>)
+(defun date> (timestamp)
   "Return a file predicate that matches on modification time #'> than timestamp."
   (lambda (file)
     (local-time:timestamp> (modification-date file) timestamp)))
 
-(export-always 'match-extension)
-(defun match-extension (extension &rest more-extensions)
-  "Return a predicate for files that match on of the provided extensions.
-Useful for `finder'."
+(export-always 'extension)
+(defun extension (extension &rest more-extensions)
+  "Return a predicate for files that match on of the provided extensions."
   (lambda (file)
     (some (lambda (ext)
             (string= ext (extension file)))
           (cons extension more-extensions))))
 
-(export-always 'match-path)
-(defun match-path (path-element &rest more-path-elements)
+(export-always 'path)
+(defun path (path-element &rest more-path-elements)
   "Return a predicate that matches when one of the path elements is contained in
-the file path.
-Useful for `finder'."
+the file path."
   (lambda (file)
     (some (lambda (elem)
             (str:contains? elem (path file)))
           (cons path-element more-path-elements))))
 
-(export-always 'match-path-end)
-(defun match-path-end (path-suffix &rest more-path-suffixes)
-  "Return a predicate that matches when one of the path suffixes is contained in
-the file path.
-Useful for `finder'."
+(export-always 'path-end)
+(defun path-end (path-suffix &rest more-path-suffixes) ; TODO: Reuse match-path-end?
+  "Return a predicate that matches when one of the path suffixes matches
+the file path."
   (lambda (file)
     (some (lambda (suffix)
             (str:ends-with? (namestring suffix) (path file)))
           (cons path-suffix more-path-suffixes))))
 
-(export-always 'match-name)
-(defun match-name (name &rest more-names)
+(export-always 'name)
+(defun name (name &rest more-names)
   "Return a predicate that matches when one of the names is contained in the
-file basename.
-Basename includes the extension.  Useful for `finder'."
+file basename. "
   (lambda (file)
     (some (lambda (name)
             (str:contains? name (basename file)))
@@ -79,8 +77,8 @@ Basename includes the extension.  Useful for `finder'."
 ;;                    files-or-dirs?)))
 ;;         files?)))
 
-(export-always 'match-executable)
-(defun match-executable ()
+(export-always 'executable)
+(defun executable ()
   (lambda (file)
     (intersection
      (permissions file)
@@ -88,14 +86,14 @@ Basename includes the extension.  Useful for `finder'."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(export-always 'match-elf-binary)
-(defun match-elf-binary ()
+(export-always 'elf-binary)
+(defun elf-binary ()
   (lambda (file)
     (and (slot-boundp file 'mime-type)
          (string= "application/x-executable" (mime-type file)))))
 
-(export-always 'match-elf-library)
-(defun match-elf-library ()
+(export-always 'elf-library)
+(defun elf-library ()
   (lambda (file)
     (and (slot-boundp file 'mime-type)
          (ppcre:scan "application/x-sharedlib" (first (mime-type file))))))

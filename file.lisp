@@ -291,8 +291,27 @@ Without PREDICATES, list all files."
                                  subfiles))))))
     result))
 
+(defun match-path (path-element &rest more-path-elements)
+  "Return a predicate that matches when one of the path elements is contained in
+the file path.
+Useful for `finder'."
+  (lambda (file)
+    (some (lambda (elem)
+            (str:contains? elem (path file)))
+          (cons path-element more-path-elements))))
+
+(defun match-path-end (path-suffix &rest more-path-suffixes)
+  "Return a predicate that matches when one of the path suffixes matches
+the file path.
+Useful for `finder'."
+  (lambda (file)
+    (some (lambda (suffix)
+            (str:ends-with? (namestring suffix) (path file)))
+          (cons path-suffix more-path-suffixes))))
+
+
 (export-always 'finder)
-(defun finder (&rest predicate-specifiers) ; TODO: Add convenient regexp support?  Case-folding?
+(defun finder (&rest predicate-specifiers) ; TODO: Add convenient regexp support?  Case-folding? Maybe str:*ignore-case* is enough.
   "List files in current directory that satisfy all PREDICATE-SPECIFIERS
 Without PREDICATE-SPECIFIERS, list all files.
 
