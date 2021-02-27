@@ -3,6 +3,7 @@
 (defsystem "fof"
   :version "0.0.0"
   :author "Pierre Neidhardt <mail@ambrevar.xyz>"
+  :homepage "https://gitlab.com/ambrevar/fof"
   :licence "GPL3+"
   :class :package-inferred-system
   :depends-on ("fof/package"))
