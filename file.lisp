@@ -13,8 +13,12 @@
   (trivial-package-local-nicknames:add-package-local-nickname :alex :alexandria)
   (trivial-package-local-nicknames:add-package-local-nickname :sera :serapeum))
 
-;; TODO: Allow some slots to modify file on disk.  Transaction?
-;; Could we edit files virtually nonetheless?  Does that even make sense?
+(defvar *chown-command* "chown")
+(defvar *touch-command* "touch") ; TODO: `utime' syscall binding is missing from Osicat.
+
+;; TODO: Run multiple disk writes within a transation?
+;; Need proper POSIX bindings.  Can Osicat do that?
+;; Could we edit files virtually?  Does that even make sense?
 
 ;; TODO: Implement disk-usage for directories.
 
@@ -54,6 +58,31 @@
     (:accessor-name-transformer (hu.dwim.defclass-star:make-name-transformer name))
     (:export-slot-names-p t)
     (:export-class-name-p t))
+
+;; TODO: Rewrite user-id and group-id using `osicat-posix::chown'.
+(defmethod (setf user-id) (id (file file))
+  (uiop:run-program (list *chown-command* (write-to-string id) (path file)))
+  (setf (slot-value file 'user-id) id))
+
+(defmethod (setf group-id) (id (file file))
+  (uiop:run-program (list *chown-command* (format nil "~a:~a" (user-id file) id)
+                          (path file)))
+  (setf (slot-value file 'group-id) id))
+
+;; TODO: For now, date setters rely on GNU touch.  Find a portable version.
+(defmethod (setf modification-date) (timestamp (file file))
+  "Set both the `modification-date' and the `access-date' of FILE."
+  (uiop:run-program (list *touch-command*
+                          (format nil "--date=~a" (local-time:format-rfc3339-timestring nil timestamp))
+                          (path file)))
+  (setf (slot-value file 'modification-date) timestamp)
+  (setf (slot-value file 'access-date) timestamp))
+
+(defmethod (setf access-date) (timestamp (file file))
+  (uiop:run-program (list *touch-command*
+                          (format nil "-a" "--date=~a" (local-time:format-rfc3339-timestring nil timestamp))
+                          (path file)))
+  (setf (slot-value file 'modification-date) timestamp))
 
 (defmethod path ((s string))
   "Useful so that `path' can be called both on a `file' or a `string'."
