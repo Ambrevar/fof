@@ -63,6 +63,26 @@
   "Useful so that `path' can be called both on a `file' or a `pathname'."
   (namestring p))
 
+(export-always 'user)
+(defmethod user ((file file))
+  "Return the name of the user owning the file."
+  (nth-value 0 (alex:assoc-value (osicat:user-info (user-id file)) :name)))
+
+(defun read-/etc/group ()
+  (let ((content (alex:read-file-into-string "/etc/group")))
+    (mapcar (alex:curry #'str:split ":") (str:split (string #\newline) content))))
+
+(defun group-id->name (id)
+  (let ((result (find (write-to-string id) (fof/file::read-/etc/group)
+                      :key #'caddr :test #'string=)))
+    (when result
+      (first result))))
+
+(export-always 'group)
+(defmethod group ((file file))
+  "Return the name of the group owning the file."
+  (group-id->name (group-id file)))
+
 (export-always 'extension)
 (defmethod extension ((file file))
   "Return the file extension.
@@ -188,6 +208,7 @@ If PARENT-DIRECTORY is not a parent of PATH, return PATH."
 ;; TODO: Support `*print-pretty*'?
 ;; TODO: `*print-readably*'?
 ;; TODO: Don't referine the method, instead use a defvar.
+;; TODO: Add `ls' convenience function.
 ;; TODO: Auto-update file when mtime changes?  Wouldn't it be too slow?
 (defmethod print-object ((file file) stream)
   (funcall (make-object-printer) file stream))
