@@ -220,12 +220,34 @@ If PARENT-DIRECTORY is not a parent of PATH, return PATH."
 (defparameter +ls-time-format+
   '(:short-month #\space (:day 2 #\ ) #\space  (:hour 2) #\: (:min 2)))
 
-(defun make-object-printer (&key (abbreviation-length 2) size? date?)
-  (lambda (file stream)
-    (format stream "#F\"~a~a~a\""
+
+(export-always '*print-object-reader-macro?*)
+(defvar *print-object-reader-macro?* t)
+(export-always '*print-object-relative-path?*)
+(defvar *print-object-relative-path?* nil)
+(export-always '*print-object-abbreviation-length*)
+(defvar *print-object-abbreviation-length* 2
+  "Set to 0 to stop abbreviating.")
+(export-always '*print-object-size?*)
+(defvar *print-object-size?* t)
+(export-always '*print-object-date?*)
+(defvar *print-object-date?* nil)
+
+(defun print-file (file stream
+                   &key
+                     (reader-macro? *print-object-reader-macro?*)
+                     (relative-path? *print-object-relative-path?*)
+                     (abbreviation-length *print-object-abbreviation-length*)
+                     (size? *print-object-size?*)
+                     (date? *print-object-date?*))
+  (let ((path (if relative-path?
+                  (relative-path file)
+                  (path file))))
+    (format stream "~a\"~a~a~a\""
+            (if reader-macro? "#F" "")
             (if (= 0 abbreviation-length)
-                (path file)
-                (shorten-path (path file) :abbreviation-length abbreviation-length))
+                path
+                (shorten-path path :abbreviation-length abbreviation-length))
             (if (and (directory? file)
                      (not (str:ends-with? "/" (path file))))
                 "/" "")
@@ -238,23 +260,46 @@ If PARENT-DIRECTORY is not a parent of PATH, return PATH."
 
 ;; TODO: Support `*print-pretty*'?
 ;; TODO: `*print-readably*'?
-;; TODO: Don't referine the method, instead use a defvar.
-;; TODO: Add `ls' convenience function.
 ;; TODO: Auto-update file when mtime changes?  Wouldn't it be too slow?
 (defmethod print-object ((file file) stream)
-  (funcall (make-object-printer) file stream))
+  (print-file file stream))
 
-(defun print-object-default ()
-  (defmethod print-object ((file file) stream)
-    (funcall (make-object-printer) file stream)))
+(defun permissions->unix (permissions)
+  (format nil "~a~a~a~a~a~a~a~a~a"
+          (if (find :user-read permissions) "r" "-")
+          (if (find :user-write permissions) "w" "-")
+          (if (find :user-exec permissions) "x" "-")
+          (if (find :group-read permissions) "r" "-")
+          (if (find :group-write permissions) "w" "-")
+          (if (find :group-exec permissions) "x" "-")
+          (if (find :other-read permissions) "r" "-")
+          (if (find :other-write permissions) "w" "-")
+          (if (find :other-exec permissions) "x" "-")))
 
-(defun print-object-with-size ()
-  (defmethod print-object ((file file) stream)
-    (funcall (make-object-printer :size? t) file stream)))
+(defun max-width (files reader &key (key #'write-to-string))
+  (apply #'max (mapcar #'length
+                       (mapcar (lambda (file)
+                                 (funcall key (funcall reader file)))
+                               files))))
 
-(defun print-object-with-date ()
-  (defmethod print-object ((file file) stream)
-    (funcall (make-object-printer :size? t :date? t) file stream)))
+(defun ls-l (&key human-readable?)
+  "Mimicks Unix' `ls -l'."
+  ;; TODO: Add support for file arguments?
+  (let* ((current-dir-entries (finder* :max-depth 1))
+         (size-column-width (max-width current-dir-entries #'size)))
+    (dolist (file current-dir-entries)
+      (format t (str:concat "~a~a ~a ~a ~a ~" (write-to-string size-column-width) "@a ~a ~a~%")
+              (if (directory? file) "d" "-")
+              (permissions->unix (permissions file))
+              (link-count file)
+              (user file)
+              (group file)
+              (if human-readable?
+                  (serapeum:format-file-size-human-readable nil (size file))
+                  (size file))
+              (local-time:format-timestring nil (modification-date file)
+                                            :format +ls-time-format+)
+              (relative-path file)))))
 
 (export-always 'file)
 (defmethod initialize-instance :after ((file file) &key)
