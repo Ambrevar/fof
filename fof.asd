@@ -5,4 +5,4 @@
   :author "Pierre Neidhardt <mail@ambrevar.xyz>"
   :licence "GPL3+"
   :class :package-inferred-system
-  :depends-on ("fof/file"))
+  :depends-on ("fof/package"))
