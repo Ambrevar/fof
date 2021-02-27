@@ -327,10 +327,10 @@ Useful for `finder'."
             (str:ends-with? (namestring suffix) (path file)))
           (cons path-suffix more-path-suffixes))))
 
-
 (export-always 'finder)
 (defun finder (&rest predicate-specifiers) ; TODO: Add convenient regexp support?  Case-folding? Maybe str:*ignore-case* is enough.
   "List files in current directory that satisfy all PREDICATE-SPECIFIERS
+Directories are ignored.
 Without PREDICATE-SPECIFIERS, list all files.
 
 A predicate specifier can be:
@@ -338,7 +338,9 @@ A predicate specifier can be:
 - a string, in which case it is turned into (match-path STRING);
 - a pathname, in which case it is turned into (match-path-end PATHNAME);
 - a list of predicates, in which case it is turned into (apply #'alexandria:disjoin PREDICATES);
-- a function (a predicate)."
+- a function (a predicate).
+
+For a more tunable finder, see `finder*'."
   (labels ((specifier->predicate (specifier)
              (match specifier
                ((and s (type string))
@@ -353,10 +355,10 @@ A predicate specifier can be:
                 pred)
                (other
                 (error "Unknown predicate specifier: ~a" other)))))
-    (let ((*finder-include-directories* nil))
-      (apply #'walk *default-pathname-defaults*
-             (mapcar #'specifier->predicate
-                     predicate-specifiers)))))
+    (finder* :root *default-pathname-defaults*
+             :exclude-directories? t
+             :predicates (mapcar #'specifier->predicate
+                                 predicate-specifiers))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defparameter %magic-cookie-mime nil
@@ -409,10 +411,11 @@ See `%description'."
 (defun file+mime (path)
   (make-instance 'file+mime :path path))
 
-(defun walk+mime (root &rest predicates)
+(defun finder*+mime (root &rest predicates)
   (let ((*finder-constructor* #'file+mime))
-    (apply #'walk root predicates)))
+    (finder* :root root
+             :predicates predicates)))
 
-(defun finder+mime (root &rest predicates)
+(defun finder+mime (&rest predicates)
   (let ((*finder-constructor* #'file+mime))
-    (apply #'finder root predicates)))
+    (apply #'finder predicates)))
