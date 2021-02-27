@@ -36,19 +36,13 @@
 (defun path~ (path-element &rest more-path-elements)
   "Return a predicate that matches when one of the path elements is contained in
 the file path."
-  (lambda (file)
-    (some (lambda (elem)
-            (str:contains? elem (path file)))
-          (cons path-element more-path-elements))))
+  (apply #'fof/file::match-path path-element more-path-elements))
 
 (export-always 'path$)
-(defun path$ (path-suffix &rest more-path-suffixes) ; TODO: Reuse match-path-end?
+(defun path$ (path-suffix &rest more-path-suffixes)
   "Return a predicate that matches when one of the path suffixes matches
 the file path."
-  (lambda (file)
-    (some (lambda (suffix)
-            (str:ends-with? (namestring suffix) (path file)))
-          (cons path-suffix more-path-suffixes))))
+  (apply #'fof/file::match-path-end path-suffix more-path-suffixes))
 
 (export-always 'name~)
 (defun name~ (name &rest more-names)
