@@ -24,11 +24,6 @@
 ;; (https://github.com/Shinmera/trivial-mimes/issues/8), description, and fix
 ;; the probe-file issue.
 
-(sera:eval-always
-  (defun name-identity (name definition)
-    (declare (ignore definition))
-    name))
-
 (defclass* file ()
     ((path (error "Path required")
            :type string
@@ -58,7 +53,7 @@
      (permissions '()
                   :type (or null
                             (cons #.(cons 'member (mapcar #'first osicat::+permissions+))))))
-    (:accessor-name-transformer #'name-identity)
+    (:accessor-name-transformer (hu.dwim.defclass-star:make-name-transformer name))
     (:export-accessor-names-p t)
     (:export-class-name-p t))
 
@@ -172,6 +167,7 @@ If PARENT-DIRECTORY is not a parent of PATH, return PATH."
 
 ;; TODO: Support `*print-pretty*'?
 ;; TODO: `*print-readably*'?
+;; TODO: Don't referine the method, instead use a defvar.
 ;; TODO: Auto-update file when mtime changes?  Wouldn't it be too slow?
 (defmethod print-object ((file file) stream)
   (funcall (make-object-printer) file stream))
@@ -271,7 +267,7 @@ Second value is the list of directories, third value is the non-directories."
 ;; - Max depth.
 ;; - Predicates.
 (export-always 'walk)
-(defun walk (root &rest predicates)
+(defun walk (root &rest predicates)     ; TODO: Rename to `finder*'?
   "List FILES (including directories) that satisfy all PREDICATES.
 Without PREDICATES, list all files."
   (let ((result '()))
@@ -378,7 +374,7 @@ See `%description'."
     ((mime-type "")
      (mime-encoding "")
      (description ""))
-    (:accessor-name-transformer #'name-identity)
+    (:accessor-name-transformer (hu.dwim.defclass-star:make-name-transformer name))
     (:export-accessor-names-p t)
     (:export-class-name-p t))
 
