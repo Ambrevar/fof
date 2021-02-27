@@ -24,16 +24,16 @@
   (lambda (file)
     (local-time:timestamp> (modification-date file) timestamp)))
 
-(export-always 'extension)
-(defun extension (extension &rest more-extensions)
+(export-always 'extension=)
+(defun extension= (extension &rest more-extensions)
   "Return a predicate for files that match on of the provided extensions."
   (lambda (file)
     (some (lambda (ext)
             (string= ext (extension file)))
           (cons extension more-extensions))))
 
-(export-always 'path)
-(defun path (path-element &rest more-path-elements)
+(export-always 'path~)
+(defun path~ (path-element &rest more-path-elements)
   "Return a predicate that matches when one of the path elements is contained in
 the file path."
   (lambda (file)
@@ -41,8 +41,8 @@ the file path."
             (str:contains? elem (path file)))
           (cons path-element more-path-elements))))
 
-(export-always 'path-end)
-(defun path-end (path-suffix &rest more-path-suffixes) ; TODO: Reuse match-path-end?
+(export-always 'path$)
+(defun path$ (path-suffix &rest more-path-suffixes) ; TODO: Reuse match-path-end?
   "Return a predicate that matches when one of the path suffixes matches
 the file path."
   (lambda (file)
@@ -50,8 +50,8 @@ the file path."
             (str:ends-with? (namestring suffix) (path file)))
           (cons path-suffix more-path-suffixes))))
 
-(export-always 'name)
-(defun name (name &rest more-names)
+(export-always 'name~)
+(defun name~ (name &rest more-names)
   "Return a predicate that matches when one of the names is contained in the
 file basename. "
   (lambda (file)
@@ -75,23 +75,20 @@ file basename. "
 ;;                    files-or-dirs?)))
 ;;         files?)))
 
-(export-always 'executable)
-(defun executable ()
-  (lambda (file)
-    (intersection
-     (permissions file)
-     '(:user-exec :group-exec :other-exec))))
+(export-always 'executable?)
+(defun executable? (file)
+  (intersection
+   (permissions file)
+   '(:user-exec :group-exec :other-exec)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(export-always 'elf-binary)
-(defun elf-binary ()
-  (lambda (file)
-    (and (slot-boundp file 'mime-type)
-         (string= "application/x-executable" (mime-type file)))))
+(export-always 'elf-binary?)
+(defun elf-binary? (file)
+  (and (slot-boundp file 'mime-type)
+       (string= "application/x-executable" (mime-type file))))
 
-(export-always 'elf-library)
-(defun elf-library ()
-  (lambda (file)
-    (and (slot-boundp file 'mime-type)
-         (ppcre:scan "application/x-sharedlib" (first (mime-type file))))))
+(export-always 'elf-library?)
+(defun elf-library? (file)
+  (and (slot-boundp file 'mime-type)
+       (ppcre:scan "application/x-sharedlib" (first (mime-type file)))))
