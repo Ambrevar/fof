@@ -77,7 +77,8 @@
 
 (defmethod (setf access-date) (timestamp (file file))
   (uiop:run-program (list *touch-command*
-                          (format nil "-a" "--date=~a" (local-time:format-rfc3339-timestring nil timestamp))
+                          "-a"
+                          (format nil "--date=~a" (local-time:format-rfc3339-timestring nil timestamp))
                           (path file)))
   (setf (slot-value file 'modification-date) timestamp))
 
