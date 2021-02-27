@@ -277,29 +277,36 @@ Second value is the list of directories, third value is the non-directories."
      subfiles)))
 
 (export-always '*finder-include-directories*)
-(defvar *finder-include-directories* t
-  "When non-nil `walk' include directories.")
+(defvar *finder-include-directories* t  ; TODO: Use?
+  "When non-nil `finder' includes directories.")
 
 (export-always '*finder-constructor*)
 (defvar *finder-constructor* #'file
   "Function that takes a path and returns a `file'-like object.")
 
-;; TODO: Add key-args:
-;; - Include dirs or not.
-;; - Max depth.
-;; - Predicates.
-(export-always 'walk)
-(defun walk (root &rest predicates)     ; TODO: Rename to `finder*'?
+(export-always 'finder*)
+(defun finder* (&key
+                (root *default-pathname-defaults*)
+                (exclude-directories? nil)
+                (max-depth 0)
+                predicates)
   "List FILES (including directories) that satisfy all PREDICATES.
-Without PREDICATES, list all files."
-  (let ((result '()))
+Without PREDICATES, list all files.
+
+When MAX-DEPTH is 0, recurse indefinitely."
+  (let ((result '())
+        (root-file (file root)))
     (uiop:collect-sub*directories
      (uiop:ensure-directory-pathname root)
-     (constantly t) (constantly t)
+     (constantly t)
+     (if (<= max-depth 0)
+         (constantly t)
+         (lambda (dir)
+           (< (depth (file dir) root-file) max-depth)))
      (lambda (subdirectory)
        (setf result (nconc result
                            (let ((subfiles (mapcar *finder-constructor*
-                                                   (append (if *finder-include-directories* (list subdirectory) nil)
+                                                   (append (when exclude-directories? (list subdirectory))
                                                            (uiop:directory-files subdirectory)))))
                              (if predicates
                                  (delete-if (lambda (file)
