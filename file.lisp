@@ -88,6 +88,7 @@ They might not be the same objects."
        (string= (path file1)
                 (path file2))))
 
+(export-always 'separator)
 (defun separator (&optional char?)
   (if char?
       (uiop:directory-separator-for-host)
