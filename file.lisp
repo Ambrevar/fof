@@ -149,21 +149,23 @@ If PARENT-DIRECTORY is not a parent of PATH, return PATH."
          (elements
            (str:split (separator) path
                       :omit-nulls t)))
-    (str:concat (when (str:starts-with? (separator) path)
-                  (separator))
-                (str:join
-                 (separator)
-                 (append
-                  (mapcar (lambda (dir)
-                            (if (<= (length dir) (+ abbreviation-length (length ellipsis)))
-                                dir
-                                (str:concat
-                                 (subseq dir 0 abbreviation-length)
-                                 ellipsis)))
-                          (butlast elements))
-                  (list (first (last elements)))))
-                (when (str:ends-with? (separator) path)
-                  (separator)))))
+    (if elements
+        (str:concat (when (str:starts-with? (separator) path)
+                      (separator))
+                    (str:join
+                     (separator)
+                     (append
+                      (mapcar (lambda (dir)
+                                (if (<= (length dir) (+ abbreviation-length (length ellipsis)))
+                                    dir
+                                    (str:concat
+                                     (subseq dir 0 abbreviation-length)
+                                     ellipsis)))
+                              (butlast elements))
+                      (list (first (last elements)))))
+                    (when (str:ends-with? (separator) path)
+                      (separator)))
+        path)))
 
 
 (defparameter +ls-time-format+
