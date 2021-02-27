@@ -401,7 +401,8 @@ When MAX-DEPTH is 0, recurse indefinitely."
      (lambda (subdirectory)
        (setf result (nconc result
                            (let ((subfiles (mapcar *finder-constructor*
-                                                   (append (when exclude-directories? (list subdirectory))
+                                                   (append (unless exclude-directories?
+                                                             (uiop:subdirectories subdirectory))
                                                            (uiop:directory-files subdirectory)))))
                              (if predicates
                                  (delete-if (lambda (file)
