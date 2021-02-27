@@ -1,18 +1,16 @@
-(uiop:define-package fof/p              ; TODO: Name?
+(uiop:define-package fof/predicates              ; TODO: Name?
+  (:nicknames fof/p)
   (:documentation "All predicates for the FOF finder.")
-  (:use #:common-lisp)
+  (:use #:common-lisp
+        #:fof/file)
   ;; (:import-from #:alexandria)
   ;; (:import-from #:hu.dwim.defclass-star #:defclass*)
   (:import-from #:local-time)
   ;; (:import-from #:magicffi)
-  ;; (:import-from #:serapeum #:export-always)
+  (:import-from #:serapeum #:export-always)
   (:import-from #:str)
   (:import-from #:trivia #:match))
 (in-package fof/p)
-;; (eval-when (:compile-toplevel :load-toplevel :execute)
-;;   (trivial-package-local-nicknames:add-package-local-nickname :alex :alexandria)
-;;   (trivial-package-local-nicknames:add-package-local-nickname :sera :serapeum))
-
 
 (export-always 'date<)
 (defun date< (timestamp)
