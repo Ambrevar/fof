@@ -16,8 +16,6 @@
 ;; TODO: Allow some slots to modify file on disk.  Transaction?
 ;; Could we edit files virtually nonetheless?  Does that even make sense?
 
-;; TODO: Only expose readers for slots that cannot be modified, such as `path'.
-
 ;; TODO: Implement disk-usage for directories.
 
 ;; TODO: Replace magicffi with trivial-mime once we can get MIME encoding
@@ -27,10 +25,11 @@
 (defclass* file ()
     ((path (error "Path required")
            :type string
-           ;; :reader path
-           )
-     (inode 0)
-     (link-count 0)
+           :reader t)
+     (inode 0
+            :reader t)
+     (link-count 0
+                 :reader t)
      (kind :regular-file              ; "kind" because `type' is reserved by CL.
            :type (member :directory
                          :character-device
@@ -39,22 +38,21 @@
                          :symbolic-link
                          :socket
                          :pipe)
-           ;; :reader kind
-           )
+           :reader t)
      (size 0
-           ;; :reader size
-           )
+           :reader t)
      (user-id 0)
      (group-id 0)
      ;; TODO: Include blocks?
-     (creation-date (local-time:unix-to-timestamp 0))
+     (creation-date (local-time:unix-to-timestamp 0)
+                    :reader t)
      (modification-date (local-time:unix-to-timestamp 0))
      (access-date (local-time:unix-to-timestamp 0))
      (permissions '()
                   :type (or null
                             (cons #.(cons 'member (mapcar #'first osicat::+permissions+))))))
     (:accessor-name-transformer (hu.dwim.defclass-star:make-name-transformer name))
-    (:export-accessor-names-p t)
+    (:export-slot-names-p t)
     (:export-class-name-p t))
 
 (defmethod path ((s string))
@@ -225,17 +223,17 @@ If PARENT-DIRECTORY is not a parent of PATH, return PATH."
                          when (plusp (logand mode value))
                            collect name))))
           (setf
-           (path file) (uiop:unix-namestring native-path)
-           (inode file) (osicat-posix:stat-ino stat)
-           (link-count file) (osicat-posix:stat-nlink stat)
-           (kind file) (osicat:file-kind native-path) ; TODO: Don't recall `stat'.
-           (size file) (osicat-posix:stat-size stat)
-           (user-id file) (osicat-posix:stat-uid stat)
-           (group-id file) (osicat-posix:stat-gid stat)
-           (creation-date file) (local-time:unix-to-timestamp (osicat-posix:stat-ctime stat))
-           (modification-date file) (local-time:unix-to-timestamp (osicat-posix:stat-mtime stat))
-           (access-date file) (local-time:unix-to-timestamp (osicat-posix:stat-atime stat))
-           (permissions file) (stat-permissions stat)))))))
+           (slot-value file 'path) (uiop:unix-namestring native-path)
+           (slot-value file 'inode) (osicat-posix:stat-ino stat)
+           (slot-value file 'link-count) (osicat-posix:stat-nlink stat)
+           (slot-value file 'kind) (osicat:file-kind native-path) ; TODO: Don't recall `stat'.
+           (slot-value file 'size) (osicat-posix:stat-size stat)
+           (slot-value file 'user-id) (osicat-posix:stat-uid stat)
+           (slot-value file 'group-id) (osicat-posix:stat-gid stat)
+           (slot-value file 'creation-date) (local-time:unix-to-timestamp (osicat-posix:stat-ctime stat))
+           (slot-value file 'modification-date) (local-time:unix-to-timestamp (osicat-posix:stat-mtime stat))
+           (slot-value file 'access-date) (local-time:unix-to-timestamp (osicat-posix:stat-atime stat))
+           (slot-value file 'permissions) (stat-permissions stat)))))))
 
 (defun file (path)
   (make-instance 'file :path path))
@@ -402,18 +400,21 @@ See `%description'."
 
 ;; TODO: Include the description or do it in another class?  Could be slower.  Benchmark.
 (defclass* file+mime (file)
-    ((mime-type "")
-     (mime-encoding "")
-     (description ""))
+    ((mime-type ""
+                :reader t)
+     (mime-encoding ""
+                    :reader t)
+     (description ""
+                  :reader t))
     (:accessor-name-transformer (hu.dwim.defclass-star:make-name-transformer name))
-    (:export-accessor-names-p t)
+    (:export-slot-names-p t)
     (:export-class-name-p t))
 
 (defmethod initialize-instance :after ((file file+mime) &key)
   (let ((mime-type+encoding (%mime-type+encoding (path file))))
-    (setf (mime-type file) (first mime-type+encoding)
-          (mime-encoding file) (second mime-type+encoding)
-          (description file) (%description (path file)))))
+    (setf (slot-value file 'mime-type) (first mime-type+encoding)
+          (slot-value file 'mime-encoding) (second mime-type+encoding)
+          (slot-value file 'description) (%description (path file)))))
 
 (defun file+mime (path)
   (make-instance 'file+mime :path path))
