@@ -4,7 +4,65 @@
 *Warning:* This library is currently experimental.  While perfectly usable as
  is, the application programming interface is prone to change in the future.
 
+* Features
+
+- A =file= class which embeds the path and metadata such as permissions, last
+  access time, etc.
+
+- Slot writers which commit changes to disk, e.g. permissions, modification
+  time, etc.
+
+- Various path manipulation functions which supersede Common Lisp =pathname=
+  related functions.
+
+- The =finder= and =finder*= which return a list of files matching predicates.
+
+- A =fof:readtable= to enable the =#f"/path/to/file"= syntax, which mimicks =#p=
+  for pathnames.
+
+In practice, it mostly supersedes:
+
+- Common Lisp pathnames (at least for existing files).
+- Many Unix tools:
+  - =find= for recursive and programmable file search.
+    Unlike =find=, =finder='s predicates are extensible.
+  - =ls=
+  - =stat=
+  - =chown=
+  - =chmod=
+
+Note that FOF is not meant to manipulate arbitrary paths of non-existing files.
+Considering using [[https://github.com/fourier/ppath][ppath]] instead.
+
 * Goals
 
-Beings usable for rapid searching and file manipulation.
-Package, function and argument names should be short and rememberable.
+Enable rapid file search, inspection and manipulation.
+
+(Package, function and argument names should be short and rememberable.)
+
+* Portability
+
+For now this is only tested on Unix-based systems.
+Help welcome if you need support for another system.
+
+* Examples
+
+TODO: Complete me!
+
+* Mediafiles (Work-in-progress)
+
+Load the separate =fof/mf= system to access the following extensions:
+
+- =mediafile= class: leverages =ffprobe= (from the [[https://www.ffmpeg.org/][FFmpeg]] suite) to extract
+  media metadata.
+
+  It also includes MIME information.
+
+- =mediafinder= and =mediafinder*=: just like =finder= and =finder*=
+  respectively, but return =mediafile=s instead of =file=.
+
+- The =fof/mediafile:readtable=.
+
+Why the separate class and helpers?  Because collecting media metadata is much
+slower.  You should use =fof:finder= if you are not interested in the media
+metadata and you are seeking performance.
