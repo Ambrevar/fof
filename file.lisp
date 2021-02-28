@@ -221,8 +221,8 @@ If PARENT-DIRECTORY is not a parent of PATH, return PATH."
   '(:short-month #\space (:day 2 #\ ) #\space  (:hour 2) #\: (:min 2)))
 
 
-(export-always '*print-object-reader-macro?*)
-(defvar *print-object-reader-macro?* t)
+(export-always '*print-object-reader-macro*)
+(defvar *print-object-reader-macro* "#F")
 (export-always '*print-object-relative-path?*)
 (defvar *print-object-relative-path?* nil)
 (export-always '*print-object-abbreviation-length*)
@@ -235,7 +235,7 @@ If PARENT-DIRECTORY is not a parent of PATH, return PATH."
 
 (defun print-file (file stream
                    &key
-                     (reader-macro? *print-object-reader-macro?*)
+                     (reader-macro *print-object-reader-macro*)
                      (relative-path? *print-object-relative-path?*)
                      (abbreviation-length *print-object-abbreviation-length*)
                      (size? *print-object-size?*)
@@ -244,7 +244,7 @@ If PARENT-DIRECTORY is not a parent of PATH, return PATH."
                   (relative-path file)
                   (path file))))
     (format stream "~a\"~a~a~a\""
-            (if reader-macro? "#F" "")
+            reader-macro
             (if (= 0 abbreviation-length)
                 path
                 (shorten-path path :abbreviation-length abbreviation-length))
