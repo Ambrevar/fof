@@ -1,19 +1,13 @@
-(uiop:define-package ambrevar/ffprobe
+(uiop:define-package fof/ffprobe
   (:nicknames #:ffprobe)
   (:documentation "FFprobe abstraction.")
   (:use #:common-lisp)
   (:use #:trivia)
   (:import-from #:hu.dwim.defclass-star #:defclass*)
   (:import-from #:serapeum #:export-always))
-(in-package ambrevar/ffprobe)
+(in-package fof/ffprobe)
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (trivial-package-local-nicknames:add-package-local-nickname :alex :alexandria)
-  (trivial-package-local-nicknames:add-package-local-nickname :sera :serapeum))
-
-(sera:eval-always
-  (defun name-identity (name definition)
-    (declare (ignore definition))
-    name))
+  (trivial-package-local-nicknames:add-package-local-nickname :alex :alexandria))
 
 ;; TODO: Should leave unspecified fields unbound?
 
@@ -30,7 +24,7 @@
      (clean-effects 0)
      (attached-pic 0)
      (timed-thumbnails 0))
-    (:accessor-name-transformer #'name-identity)
+    (:accessor-name-transformer (hu.dwim.defclass-star:make-name-transformer name))
     (:export-accessor-names-p t)
     (:export-class-name-p t))
 
@@ -93,7 +87,7 @@
                   :type (or null disposition))
      (side-data-list '())
      (tags '()))
-    (:accessor-name-transformer #'name-identity)
+    (:accessor-name-transformer (hu.dwim.defclass-star:make-name-transformer name))
     (:export-accessor-names-p t)
     (:export-class-name-p t))
 
@@ -109,7 +103,7 @@
      (bit-rate 0)
      (probe-score 0)
      (tags '()))
-    (:accessor-name-transformer #'name-identity)
+    (:accessor-name-transformer (hu.dwim.defclass-star:make-name-transformer name))
     (:export-accessor-names-p t)
     (:export-class-name-p t))
 

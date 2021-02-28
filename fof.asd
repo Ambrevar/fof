@@ -7,3 +7,7 @@
   :licence "GPL3+"
   :class :package-inferred-system
   :depends-on ("fof/package"))
+
+(defsystem "fof/mf"
+  :class :package-inferred-system
+  :depends-on ("fof/mediafile"))
