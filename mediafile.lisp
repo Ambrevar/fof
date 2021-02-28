@@ -28,6 +28,10 @@
     (setf (media-format file) (first probe)
           (media-streams file) (rest probe))))
 
+(defmethod print-object ((file mediafile) stream)
+  (let ((*print-object-reader-macro* "#MF"))
+    (fof/file::print-file file stream)))
+
 (export-always 'mediafile)
 (defun mediafile (path)
   (make-instance 'mediafile :path path))
