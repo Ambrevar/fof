@@ -32,6 +32,19 @@
   (let ((*print-object-reader-macro* "#MF"))
     (fof/file::print-file file stream)))
 
+(defun mediafile-reader (stream char1 char2)
+  (declare (ignore char1 char2))
+  (when (eq (read-char stream nil :eof) #\f)
+    (fof/file::read-until stream #\")
+    (mediafile (fof/file::read-until stream #\"))))
+
+(export-always 'readtable)
+(named-readtables:defreadtable fof/mediafile::readtable
+  (:merge :standard)
+  ;; TODO: Can we merge fof/file::readtable instead of redefining #f?
+  (:dispatch-macro-char #\# #\f #'fof/file::file-reader)
+  (:dispatch-macro-char #\# #\m #'mediafile-reader))
+
 (export-always 'mediafile)
 (defun mediafile (path)
   (make-instance 'mediafile :path path))
