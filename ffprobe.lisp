@@ -9,6 +9,8 @@
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (trivial-package-local-nicknames:add-package-local-nickname :alex :alexandria))
 
+(defvar *ffprobe-command* "ffprobe")
+
 ;; TODO: Should leave unspecified fields unbound?
 
 (defclass* disposition ()
@@ -143,7 +145,7 @@
   "Return a list of (MEDIA-FORMAT MEDIA-STREAMS...)."
   (let* ((json-string
            (ignore-errors
-            (cmd:$cmd "ffprobe -v quiet -print_format json -show_format -show_streams -- "
+            (cmd:$cmd *ffprobe-command* "-v quiet -print_format json -show_format -show_streams -- "
                       (write-to-string path)))))
     (when json-string
       (let* ((json (cl-json:decode-json-from-string json-string))
