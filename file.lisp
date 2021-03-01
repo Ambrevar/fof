@@ -159,9 +159,11 @@ This returns the directory name for directories."
 
 (export-always 'exists?)
 (defmethod exists? ((file file))
-  (if (directory? file)
-      (uiop:directory-exists-p (path file))
-      (uiop:file-exists-p (path file))))
+  (and
+   (if (directory? file)
+       (uiop:directory-exists-p (path file))
+       (uiop:file-exists-p (path file)))
+   file))
 
 (export-always 'parent)
 (defmethod parent ((file file))
