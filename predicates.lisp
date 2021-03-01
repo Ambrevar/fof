@@ -64,6 +64,10 @@ of ROOT less deep than LEVEL."
    (permissions file)
    '(:user-exec :group-exec :other-exec)))
 
+(export-always 'hidden?)
+(defun hidden? (file)
+  (str:starts-with? "." (basename file)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (export-always 'elf-binary?)

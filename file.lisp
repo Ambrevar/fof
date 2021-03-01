@@ -20,8 +20,6 @@
 ;; Need proper POSIX bindings.  Can Osicat do all of them?
 ;; Could we edit files virtually?  Does that even make sense?
 
-;; TODO: Handle hidden files.
-
 ;; TODO: Replace magicffi with trivial-mime once we can get MIME encoding
 ;; (https://github.com/Shinmera/trivial-mimes/issues/8), description, and fix
 ;; the probe-file issue.
