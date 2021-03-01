@@ -412,11 +412,13 @@ Second value is the list of directories, third value is the non-directories."
 (export-always 'finder*)
 (defun finder* (&key
                   (root (file *default-pathname-defaults*))
-                  (exclude-directories? nil) ; TODO: Replace by predicate.
                   predicates
                   recur-predicates)
   "List FILES (including directories) that satisfy all PREDICATES.
-Without PREDICATES, list all files."
+Without PREDICATES, list all files.
+
+Recur in subdirectories when they satisfy all RECUR-PREDICATES.
+Without RECUR-PREDICATES, recur in all subdirectories."
   (let ((result '()))
     (uiop:collect-sub*directories
      (uiop:ensure-directory-pathname (path root))
@@ -426,8 +428,7 @@ Without PREDICATES, list all files."
      (lambda (subdirectory)
        (setf result (nconc result
                            (let ((subfiles (mapcar *finder-constructor*
-                                                   (append (unless exclude-directories?
-                                                             (uiop:subdirectories subdirectory))
+                                                   (append (uiop:subdirectories subdirectory)
                                                            (uiop:directory-files subdirectory)))))
                              (if predicates
                                  (delete-if (lambda (file)
@@ -489,9 +490,9 @@ For a more tunable finder, see `finder*'."
                (other
                 (error "Unknown predicate specifier: ~a" other)))))
     (finder* :root (file *default-pathname-defaults*)
-             :exclude-directories? t
-             :predicates (mapcar #'specifier->predicate
-                                 predicate-specifiers))))
+             :predicates (cons (complement #'directory?)
+                               (mapcar #'specifier->predicate
+                                       predicate-specifiers)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defparameter %magic-cookie-mime nil

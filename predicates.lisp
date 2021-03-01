@@ -58,22 +58,6 @@ file basename. "
 of ROOT less deep than LEVEL."
   (apply #'fof/file::match-depth< level root))
 
-;; TODO: Better control to filter in/out directories?
-;; (export-always 'match-directory)
-;; (defun match-directory (&key (empty? t) (non-empty? t) (files? t))
-;;   "Return a predicate that matches on directories.
-;; If target is a file, return FILES?.
-;; Useful for `walk'."
-;;   (lambda (directory)
-;;     (if (uiop:directory-exists-p directory)
-;;         (let ((files-or-dirs? (or (uiop:directory-files directory)
-;;                                   (uiop:subdirectories directory))))
-;;           (or (and empty?
-;;                    (not files-or-dirs?))
-;;               (and non-empty?
-;;                    files-or-dirs?)))
-;;         files?)))
-
 (export-always 'executable?)
 (defun executable? (file)
   (intersection
