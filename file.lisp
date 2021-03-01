@@ -253,7 +253,7 @@ If PARENT-DIRECTORY is not a parent of PATH, return PATH."
 (defvar *print-object-abbreviation-length* 2
   "Set to 0 to stop abbreviating.")
 (export-always '*print-object-size?*)
-(defvar *print-object-size?* t)
+(defvar *print-object-size?* nil)
 (export-always '*print-object-date?*)
 (defvar *print-object-date?* nil)
 
