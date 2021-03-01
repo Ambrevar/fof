@@ -54,7 +54,97 @@ Help welcome if you need support for another system.
 
 * Examples
 
-TODO: Complete me!
+#+begin_src lisp
+  ;; Make inspectable file object:
+  (file "fof.asd")
+  ; => #F"~/co…/fof/fof.asd"
+
+  ;; Enable reader macro:
+  (named-readtables:in-readtable fof:readtable)
+  ; => #<NAMED-READTABLE READTABLE {1003035363}>
+
+  ;; Now you can use the #f syntax:
+  #f"fof.asd"
+  ; => #F"~/co…/fof/fof.asd"
+
+  ;; Set permissions
+  (setf (permissions #f"fof.asd") '(:user-read :user-write :group-read))
+  ; => (:USER-READ :USER-WRITE :GROUP-READ)
+
+  ;; Recursive disk-usage, in bytes.
+  (disk-usage #f".")
+  ; => 1298432
+
+  ;; Custom printer:
+  (setf *print-abbreviation-length* 0
+        *print-size?* t
+        *print-date?* t)
+  ; => #F"/home/ambrevar/common-lisp/fof/fof.asd 348 Feb 28 16:56"
+#+end_src
+
+Familiar path manipulation functions
+
+#+begin_src lisp
+  (separator)
+  ; => "/"
+
+  (extension #f"fof.asd")
+  ; => "asd"
+  (basename #f"../fof/fof.asd")
+  ; => "fof.asd"
+  (parent #f"fof.asd")
+  ; => #F"~/co…/fof/"
+  (relative-path #f"fof.asd" #f"..")
+  ; => "fof/fof.asd
+
+  (file? #f"fof.asd")
+  ; => T
+  (directory? #f"fof.asd")
+  ; => NIL
+  (let ((f #f"fof.asd"))
+    (delete-file f)
+    (exists? f))
+  ; => NIL
+#+end_src
+
+File search and recursive listing:
+
+#+begin_src lisp
+  ;; List all files in the current directory, recursively.
+  (finder)
+  ; => (#F"~/co…/fof/LICENSE"
+  ;     #F"~/co…/fof/ffprobe.lisp"
+  ;     #F"~/co…/fof/file.lisp"
+  ;     #F"~/co…/fof/fof.asd"
+  ;     #F"~/co…/fof/mediafile.lisp"
+  ;     ...)
+
+  ;; Same, with given root, without descending into hidden directories and
+  ;; without descending more than one level:
+  (finder* :root (file ".") :recur-predicates (list (complement #'fof/p:hidden?)
+                                                    (fof/p:depth< 2))
+
+  ;; List files matching all the given predicates.
+  ;; The `fof/p' package contains numerous useful predicate or predicate
+  ;; generators you can compmlete against.
+  (finder (fof/p:path~ "fil") (fof/p:extension= "lisp"))
+  ; => (#F"~/co…/fof/file.lisp" #F"~/co…/fof/mediafile.lisp")
+
+  ;; Passing a string as a predicate specifier is equivalent to `path~'.
+  ;; Passing a pathname is equivalent to `path$' (match end of path).
+  ;; The following is the same as the previous example:
+  (finder "fil" (fof/p:extension= "lisp"))
+  ; => (#F"~/co…/fof/file.lisp" #F"~/co…/fof/mediafile.lisp")
+
+  ;; Passing a list of predicate specifiers connects them with a logical 'or'.
+  ;; In other words, it returns the files matching at least one of the predicate
+  ;; specifiers.
+  (finder (list "fil" (fof/p:extension= "asd")))
+  ; => (#F"~/co…/fof/file.lisp" #F"~/co…/fof/fof.asd" #F"~/co…/fof/mediafile.lisp")
+
+  ;; For more complex predicate list nesting, you can leverage
+  ;; `alexandria:disjoin' and `alexandria:conjoin'.
+#+end_src
 
 * Mediafiles (Work-in-progress)
 
