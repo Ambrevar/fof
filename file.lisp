@@ -181,13 +181,12 @@ This returns the directory name for directories."
      (1+ (depth (parent file) parent)))))
 
 (export-always 'relative-path)
-(defmethod relative-path ((file file) &optional (parent-directory *default-pathname-defaults*))
+(defmethod relative-path ((file file) &optional (parent-directory (file *default-pathname-defaults*)))
   "Return PATH relative to PARENT-DIRECTORY.
 If PARENT-DIRECTORY is not a parent of PATH, return PATH."
-  (setf parent-directory (path (uiop:ensure-directory-pathname parent-directory)))
-  (if (str:starts-with? parent-directory
+  (if (str:starts-with? (path parent-directory)
                         (path file))
-      (subseq (path file) (length parent-directory))
+      (subseq (path file) (length (path parent-directory)))
       (path file)))
 
 (defun shorten-home (path)
@@ -365,14 +364,14 @@ If PARENT-DIRECTORY is not a parent of PATH, return PATH."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (export-always 'list-directory)
-(defun list-directory (&optional (path *default-pathname-defaults*) sort)
+(defun list-directory (&optional (path (file *default-pathname-defaults*)) sort)
   "Return entries in PATH.
 By default, directories come first.
 If SORT is non nil, sort them alphabetically.
 Second value is the list of directories, third value is the non-directories."
   ;; TODO: Use locale to sort?
-  (let* ((subdirs (mapcar #'file (uiop:subdirectories path)))
-         (subfiles (mapcar #'file (uiop:directory-files path)))
+  (let* ((subdirs (mapcar #'file (uiop:subdirectories (path path))))
+         (subfiles (mapcar #'file (uiop:directory-files (path path))))
          (result (append subdirs subfiles)))
     (values
      (if sort
@@ -391,23 +390,22 @@ Second value is the list of directories, third value is the non-directories."
 
 (export-always 'finder*)
 (defun finder* (&key
-                (root *default-pathname-defaults*)
-                (exclude-directories? nil)
-                (max-depth 0)
-                predicates)
+                  (root (file *default-pathname-defaults*))
+                  (exclude-directories? nil)
+                  (max-depth 0)
+                  predicates)
   "List FILES (including directories) that satisfy all PREDICATES.
 Without PREDICATES, list all files.
 
 When MAX-DEPTH is 0, recurse indefinitely."
-  (let ((result '())
-        (root-file (file root)))
+  (let ((result '()))
     (uiop:collect-sub*directories
-     (uiop:ensure-directory-pathname root)
+     (uiop:ensure-directory-pathname (path root))
      (constantly t)
      (if (<= max-depth 0)
          (constantly t)
          (lambda (dir)
-           (< (depth (file dir) root-file) max-depth)))
+           (< (depth (file dir) root) max-depth)))
      (lambda (subdirectory)
        (setf result (nconc result
                            (let ((subfiles (mapcar *finder-constructor*
@@ -468,7 +466,7 @@ For a more tunable finder, see `finder*'."
                 pred)
                (other
                 (error "Unknown predicate specifier: ~a" other)))))
-    (finder* :root *default-pathname-defaults*
+    (finder* :root (file *default-pathname-defaults*)
              :exclude-directories? t
              :predicates (mapcar #'specifier->predicate
                                  predicate-specifiers))))
