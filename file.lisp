@@ -247,25 +247,25 @@ If PARENT-DIRECTORY is not a parent of PATH, return PATH."
   '(:short-month #\space (:day 2 #\ ) #\space  (:hour 2) #\: (:min 2)))
 
 
-(export-always '*print-object-reader-macro*)
-(defvar *print-object-reader-macro* "#F")
-(export-always '*print-object-relative-path?*)
-(defvar *print-object-relative-path?* nil)
-(export-always '*print-object-abbreviation-length*)
-(defvar *print-object-abbreviation-length* 2
+(export-always '*print-reader-macro*)
+(defvar *print-reader-macro* "#F")
+(export-always '*print-relative-path?*)
+(defvar *print-relative-path?* nil)
+(export-always '*print-abbreviation-length*)
+(defvar *print-abbreviation-length* 2
   "Set to 0 to stop abbreviating.")
-(export-always '*print-object-size?*)
-(defvar *print-object-size?* nil)
-(export-always '*print-object-date?*)
-(defvar *print-object-date?* nil)
+(export-always '*print-size?*)
+(defvar *print-size?* nil)
+(export-always '*print-date?*)
+(defvar *print-date?* nil)
 
 (defun print-file (file stream
                    &key
-                     (reader-macro *print-object-reader-macro*)
-                     (relative-path? *print-object-relative-path?*)
-                     (abbreviation-length *print-object-abbreviation-length*)
-                     (size? *print-object-size?*)
-                     (date? *print-object-date?*))
+                     (reader-macro *print-reader-macro*)
+                     (relative-path? *print-relative-path?*)
+                     (abbreviation-length *print-abbreviation-length*)
+                     (size? *print-size?*)
+                     (date? *print-date?*))
   (let ((path (if relative-path?
                   (relative-path file)
                   (path file))))
