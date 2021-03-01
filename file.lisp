@@ -288,43 +288,6 @@ If PARENT-DIRECTORY is not a parent of PATH, return PATH."
 (defmethod print-object ((file file) stream)
   (print-file file stream))
 
-(defun permissions->unix (permissions)
-  (format nil "~a~a~a~a~a~a~a~a~a"
-          (if (find :user-read permissions) "r" "-")
-          (if (find :user-write permissions) "w" "-")
-          (if (find :user-exec permissions) "x" "-")
-          (if (find :group-read permissions) "r" "-")
-          (if (find :group-write permissions) "w" "-")
-          (if (find :group-exec permissions) "x" "-")
-          (if (find :other-read permissions) "r" "-")
-          (if (find :other-write permissions) "w" "-")
-          (if (find :other-exec permissions) "x" "-")))
-
-(defun max-width (files reader &key (key #'write-to-string))
-  (apply #'max (mapcar #'length
-                       (mapcar (lambda (file)
-                                 (funcall key (funcall reader file)))
-                               files))))
-
-(defun ls-l (&key human-readable?)
-  "Mimicks Unix' `ls -l'."
-  ;; TODO: Add support for file arguments?
-  (let* ((current-dir-entries (finder* :recur-predicates (list (match-depth< 2))))
-         (size-column-width (max-width current-dir-entries #'size)))
-    (dolist (file current-dir-entries)
-      (format t (str:concat "~a~a ~a ~a ~a ~" (write-to-string size-column-width) "@a ~a ~a~%")
-              (if (directory? file) "d" "-")
-              (permissions->unix (permissions file))
-              (link-count file)
-              (user file)
-              (group file)
-              (if human-readable?
-                  (serapeum:format-file-size-human-readable nil (size file))
-                  (size file))
-              (local-time:format-timestring nil (modification-date file)
-                                            :format +ls-time-format+)
-              (relative-path file)))))
-
 (export-always 'file)
 (defmethod initialize-instance :after ((file file) &key)
   (let* ((path (path file))
@@ -491,6 +454,46 @@ For a more tunable finder, see `finder*'."
              :predicates (cons (complement #'directory?)
                                (mapcar #'specifier->predicate
                                        predicate-specifiers)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; `ls -l' proof-of-concept replacement.
+
+(defun permissions->unix (permissions)
+  (format nil "~a~a~a~a~a~a~a~a~a"
+          (if (find :user-read permissions) "r" "-")
+          (if (find :user-write permissions) "w" "-")
+          (if (find :user-exec permissions) "x" "-")
+          (if (find :group-read permissions) "r" "-")
+          (if (find :group-write permissions) "w" "-")
+          (if (find :group-exec permissions) "x" "-")
+          (if (find :other-read permissions) "r" "-")
+          (if (find :other-write permissions) "w" "-")
+          (if (find :other-exec permissions) "x" "-")))
+
+(defun max-width (files reader &key (key #'write-to-string))
+  (apply #'max (mapcar #'length
+                       (mapcar (lambda (file)
+                                 (funcall key (funcall reader file)))
+                               files))))
+
+(defun ls-l (&key human-readable?)
+  "Mimicks Unix' `ls -l'."
+  ;; TODO: Add support for file arguments?
+  (let* ((current-dir-entries (finder* :recur-predicates (list (match-depth< 2))))
+         (size-column-width (max-width current-dir-entries #'size)))
+    (dolist (file current-dir-entries)
+      (format t (str:concat "~a~a ~a ~a ~a ~" (write-to-string size-column-width) "@a ~a ~a~%")
+              (if (directory? file) "d" "-")
+              (permissions->unix (permissions file))
+              (link-count file)
+              (user file)
+              (group file)
+              (if human-readable?
+                  (serapeum:format-file-size-human-readable nil (size file))
+                  (size file))
+              (local-time:format-timestring nil (modification-date file)
+                                            :format +ls-time-format+)
+              (relative-path file)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defparameter %magic-cookie-mime nil
