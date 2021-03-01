@@ -30,6 +30,7 @@ In practice, it mostly supersedes:
   - =stat=
   - =chown=
   - =chmod=
+  - =du=
 
 Note that FOF is not meant to manipulate arbitrary paths of non-existing files.
 Considering using [[https://github.com/fourier/ppath][ppath]] instead.

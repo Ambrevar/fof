@@ -20,7 +20,7 @@
 ;; Need proper POSIX bindings.  Can Osicat do all of them?
 ;; Could we edit files virtually?  Does that even make sense?
 
-;; TODO: Implement disk-usage for directories.
+;; TODO: Handle hidden files.
 
 ;; TODO: Replace magicffi with trivial-mime once we can get MIME encoding
 ;; (https://github.com/Shinmera/trivial-mimes/issues/8), description, and fix
@@ -45,6 +45,8 @@
            :reader t)
      (size 0
            :reader t)
+     (disk-usage 0
+                 :reader t)
      (user-id 0)
      (group-id 0)
      ;; TODO: Include blocks?
@@ -170,6 +172,24 @@ This returns the directory name for directories."
    (if (directory? file)
        (uiop:pathname-parent-directory-pathname (path file))
        (uiop:pathname-directory-pathname (path file)))))
+
+(defmethod disk-usage* ((file file))
+  "Compute recursive `disk-usage' of FILE if a directory.
+Return the new disk-usage."
+  (if (directory? file)
+      (if (list-directory file)
+          (reduce #'+ (mapcar #'disk-usage* (list-directory file)))
+          (size file))
+      (slot-value file 'disk-usage)))
+
+(defmethod disk-usage ((file file))
+  "Return FILE `disk-usage'.
+If FILE is a directory and it's disk-usage is 0 (never computed before), set it
+with `disk-usage*' and return the new value."
+  (if (or (file? file)
+          (/= 0 (slot-value file 'disk-usage)))
+      (slot-value file 'disk-usage)
+      (disk-usage* file)))
 
 (defun depth (file parent)
   (cond
@@ -331,6 +351,7 @@ If PARENT-DIRECTORY is not a parent of PATH, return PATH."
              (slot-value file 'link-count) (osicat-posix:stat-nlink stat)
              (slot-value file 'kind) (osicat:file-kind native-path) ; TODO: Don't recall `stat'.
              (slot-value file 'size) (osicat-posix:stat-size stat)
+             (slot-value file 'disk-usage) (* 512 (osicat-posix:stat-blocks stat)) ; 512 as per (2)stat.
              (slot-value file 'user-id) (osicat-posix:stat-uid stat)
              (slot-value file 'group-id) (osicat-posix:stat-gid stat)
              (slot-value file 'creation-date) (local-time:unix-to-timestamp (osicat-posix:stat-ctime stat))
