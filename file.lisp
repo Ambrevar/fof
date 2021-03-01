@@ -311,7 +311,7 @@ If PARENT-DIRECTORY is not a parent of PATH, return PATH."
 (defun ls-l (&key human-readable?)
   "Mimicks Unix' `ls -l'."
   ;; TODO: Add support for file arguments?
-  (let* ((current-dir-entries (finder* :max-depth 1))
+  (let* ((current-dir-entries (finder* :recur-predicates (list (match-depth< 2))))
          (size-column-width (max-width current-dir-entries #'size)))
     (dolist (file current-dir-entries)
       (format t (str:concat "~a~a ~a ~a ~a ~" (write-to-string size-column-width) "@a ~a ~a~%")
@@ -412,21 +412,17 @@ Second value is the list of directories, third value is the non-directories."
 (export-always 'finder*)
 (defun finder* (&key
                   (root (file *default-pathname-defaults*))
-                  (exclude-directories? nil)
-                  (max-depth 0)
-                  predicates)
+                  (exclude-directories? nil) ; TODO: Replace by predicate.
+                  predicates
+                  recur-predicates)
   "List FILES (including directories) that satisfy all PREDICATES.
-Without PREDICATES, list all files.
-
-When MAX-DEPTH is 0, recurse indefinitely."
+Without PREDICATES, list all files."
   (let ((result '()))
     (uiop:collect-sub*directories
      (uiop:ensure-directory-pathname (path root))
      (constantly t)
-     (if (<= max-depth 0)
-         (constantly t)
-         (lambda (dir)
-           (< (depth (file dir) root) max-depth)))
+     (lambda (dir)
+       (every (alex:rcurry #'funcall (file dir)) recur-predicates))
      (lambda (subdirectory)
        (setf result (nconc result
                            (let ((subfiles (mapcar *finder-constructor*
@@ -435,8 +431,7 @@ When MAX-DEPTH is 0, recurse indefinitely."
                                                            (uiop:directory-files subdirectory)))))
                              (if predicates
                                  (delete-if (lambda (file)
-                                              (notevery (lambda (pred) (funcall pred file))
-                                                        predicates))
+                                              (notevery (alex:rcurry #'funcall file) predicates))
                                             subfiles)
                                  subfiles))))))
     result))
@@ -458,6 +453,12 @@ Useful for `finder'."
     (some (lambda (suffix)
             (str:ends-with? (namestring suffix) (path file)))
           (cons path-suffix more-path-suffixes))))
+
+(defun match-depth< (level &optional (root (file *default-pathname-defaults*)))
+  "Return a predicate that matches when the argument file is in a subdirectory
+of ROOT less deep than LEVEL."
+  (lambda (file)
+    (< (depth file root) level)))
 
 (export-always 'finder)
 (defun finder (&rest predicate-specifiers) ; TODO: Add convenient regexp support?  Case-folding? Maybe str:*ignore-case* is enough.

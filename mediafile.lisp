@@ -54,9 +54,9 @@
                            &key
                            (root *default-pathname-defaults*)
                            (exclude-directories? nil)
-                           (max-depth 0)
-                           predicates)
-  (declare (ignore root exclude-directories? max-depth predicates))
+                           predicates
+                           recur-predicates)
+  (declare (ignore root exclude-directories? predicates recur-predicates))
   (let ((*finder-constructor* #'mediafile))
     (apply #'finder* args)))
 

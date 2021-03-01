@@ -53,6 +53,11 @@ file basename. "
             (str:contains? name (basename file)))
           (cons name more-names))))
 
+(defun depth< (level &optional (root (file *default-pathname-defaults*)))
+  "Return a predicate that matches when the argument file is in a subdirectory
+of ROOT less deep than LEVEL."
+  (apply #'fof/file::match-depth< level root))
+
 ;; TODO: Better control to filter in/out directories?
 ;; (export-always 'match-directory)
 ;; (defun match-directory (&key (empty? t) (non-empty? t) (files? t))
