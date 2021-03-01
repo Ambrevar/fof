@@ -23,7 +23,10 @@ Enable rapid file search, inspection and manipulation.
 - Various path manipulation functions which supersede Common Lisp =pathname=
   related functions.
 
-- The =finder= and =finder*= which return a list of files matching predicates.
+  Using =file= instead of =pathname= saves us from many pitfalls, for instance
+  path with wildcards (such as `[`, `*`) are no longer special.
+
+- =finder= and =finder*= which return a list of files matching predicates.
 
 - A =fof:readtable= to enable the =#f"/path/to/file"= syntax, which mimicks =#p=
   for pathnames.
@@ -39,6 +42,7 @@ In practice, it mostly supersedes:
   - =chown=
   - =chmod=
   - =du=
+  - =touch=
 
 Note that FOF is not meant to manipulate arbitrary paths of non-existing files.
 Considering using [[https://github.com/fourier/ppath][ppath]] instead.
