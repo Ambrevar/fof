@@ -157,6 +157,12 @@ This returns the directory name for directories."
     (subseq path
             (1+ last-separator))))
 
+(export-always 'exists?)
+(defmethod exists? ((file file))
+  (if (directory? file)
+      (uiop:directory-exists-p (path file))
+      (uiop:file-exists-p (path file))))
+
 (export-always 'parent)
 (defmethod parent ((file file))
   "Return the parent directory of FILE."
