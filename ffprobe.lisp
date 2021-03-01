@@ -4,7 +4,8 @@
   (:use #:common-lisp)
   (:use #:trivia)
   (:import-from #:hu.dwim.defclass-star #:defclass*)
-  (:import-from #:serapeum #:export-always))
+  (:import-from #:serapeum #:export-always)
+  (:import-from #:cl-json))
 (in-package fof/ffprobe)
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (trivial-package-local-nicknames:add-package-local-nickname :alex :alexandria))
@@ -145,8 +146,13 @@
   "Return a list of (MEDIA-FORMAT MEDIA-STREAMS...)."
   (let* ((json-string
            (ignore-errors
-            (cmd:$cmd *ffprobe-command* "-v quiet -print_format json -show_format -show_streams -- "
-                      (write-to-string path)))))
+            (uiop:run-program (list *ffprobe-command*
+                                    "-v" "quiet"
+                                    "-print_format" "json"
+                                    "-show_format"
+                                    "-show_streams"
+                                    "--"
+                                    (write-to-string path))))))
     (when json-string
       (let* ((json (cl-json:decode-json-from-string json-string))
              (format-args (json->media-args (alex:assoc-value json :format)))
