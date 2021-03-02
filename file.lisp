@@ -26,6 +26,16 @@
 ;; (https://github.com/Shinmera/trivial-mimes/issues/8), description, and fix
 ;; the probe-file issue.
 
+(export-always 'file-kind)
+(deftype file-kind ()
+  `(member :directory
+           :character-device
+           :block-device
+           :regular-file
+           :symbolic-link
+           :socket
+           :pipe))
+
 (defclass* file ()
     ((path (error "Path required")
            :type string
@@ -35,13 +45,7 @@
      (link-count 0
                  :reader t)
      (kind :regular-file              ; "kind" because `type' is reserved by CL.
-           :type (member :directory
-                         :character-device
-                         :block-device
-                         :regular-file
-                         :symbolic-link
-                         :socket
-                         :pipe)
+           :type file-kind
            :reader t)
      (size 0
            :reader t)
