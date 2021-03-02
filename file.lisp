@@ -16,6 +16,8 @@
 
 (defvar *touch-command* "touch") ; TODO: `utime' syscall binding is missing from Osicat.
 
+;; TODO: Use `file-attributes' when https://github.com/Shinmera/file-attributes/issues/1 is fixed.
+
 ;; TODO: Run multiple disk writes within a transation?
 ;; Need proper POSIX bindings.  Can Osicat do all of them?
 ;; Could we edit files virtually?  Does that even make sense?
@@ -173,6 +175,17 @@ This returns the directory name for directories."
        (uiop:pathname-parent-directory-pathname (path file))
        (uiop:pathname-directory-pathname (path file)))))
 
+(export-always 'current-directory)
+(defun current-directory ()
+  (file *default-pathname-defaults*))
+
+(export-always 'with-current-directory)
+(defmacro with-current-directory ((&optional file) &body body)
+  "Call BODY while the POSIX current working directory is set to FILE.
+This is just like `uiop:with-current-directory' except that it takes a `file'
+object."
+  `(uiop:call-with-current-directory ,(path file) #'(lambda () ,@body)))
+
 (defmethod disk-usage* ((file file))
   "Compute recursive `disk-usage' of FILE if a directory.
 Return the new disk-usage."
@@ -201,7 +214,7 @@ with `disk-usage*' and return the new value."
      (1+ (depth (parent file) parent)))))
 
 (export-always 'relative-path)
-(defmethod relative-path ((file file) &optional (parent-directory (file *default-pathname-defaults*)))
+(defmethod relative-path ((file file) &optional (parent-directory (current-directory)))
   "Return PATH relative to PARENT-DIRECTORY.
 If PARENT-DIRECTORY is not a parent of PATH, return PATH."
   (if (str:starts-with? (path parent-directory)
@@ -349,7 +362,7 @@ If PARENT-DIRECTORY is not a parent of PATH, return PATH."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (export-always 'list-directory)
-(defun list-directory (&optional (path (file *default-pathname-defaults*)) sort)
+(defun list-directory (&optional (path (current-directory)) sort)
   "Return entries in PATH.
 By default, directories come first.
 If SORT is non nil, sort them alphabetically.
@@ -375,7 +388,7 @@ Second value is the list of directories, third value is the non-directories."
 
 (export-always 'finder*)
 (defun finder* (&key
-                  (root (file *default-pathname-defaults*))
+                  (root (current-directory))
                   predicates
                   recur-predicates)
   "List FILES (including directories) that satisfy all PREDICATES.
@@ -419,7 +432,7 @@ Useful for `finder'."
             (str:ends-with? (namestring suffix) (path file)))
           (cons path-suffix more-path-suffixes))))
 
-(defun match-depth< (level &optional (root (file *default-pathname-defaults*)))
+(defun match-depth< (level &optional (root (current-directory)))
   "Return a predicate that matches when the argument file is in a subdirectory
 of ROOT less deep than LEVEL."
   (lambda (file)
@@ -453,7 +466,7 @@ For a more tunable finder, see `finder*'."
                 pred)
                (other
                 (error "Unknown predicate specifier: ~a" other)))))
-    (finder* :root (file *default-pathname-defaults*)
+    (finder* :root (current-directory)
              :predicates (cons (complement #'directory?)
                                (mapcar #'specifier->predicate
                                        predicate-specifiers)))))

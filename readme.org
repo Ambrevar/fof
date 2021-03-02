@@ -88,6 +88,9 @@ Familiar path manipulation functions
   (separator)
   ; => "/"
 
+  (current-directory)
+  ; => #F"~/co…/fof/"
+
   (extension #f"fof.asd")
   ; => "asd"
   (basename #f"../fof/fof.asd")
