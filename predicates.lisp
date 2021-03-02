@@ -7,7 +7,9 @@
   ;; (:import-from #:hu.dwim.defclass-star #:defclass*)
   (:import-from #:local-time)
   ;; (:import-from #:magicffi)
-  (:import-from #:serapeum #:export-always)
+  (:import-from #:serapeum
+                #:export-always
+                #:->)
   (:import-from #:str)
   (:import-from #:trivia #:match))
 (in-package fof/p)
@@ -32,6 +34,14 @@
   (lambda (file)
     (some (sera:equals (extension file))
           (cons extension more-extensions))))
+
+(export-always 'kind=)
+(-> kind= (file-kind &rest file-kind) function)
+(defun kind= (kind &rest more-kinds)
+  "Return a predicate for files that match one of the provided `file-kind's."
+  (lambda (file)
+    (some (sera:eqs (kind file))
+          (cons kind more-kinds))))
 
 (export-always 'path~)
 (defun path~ (path-element &rest more-path-elements)
