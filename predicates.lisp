@@ -14,19 +14,19 @@
 
 (export-always 'date<)
 (defun date< (timestamp)
-  "Return a file predicate that matches on modification time #'< than timestamp."
+  "Return a file predicate that matches on modification time less recent than TIMESTAMP."
   (lambda (file)
     (local-time:timestamp< (modification-date file) timestamp)))
 
 (export-always 'date>)
 (defun date> (timestamp)
-  "Return a file predicate that matches on modification time #'> than timestamp."
+  "Return a file predicate that matches on modification time more recent than TIMESTAMP."
   (lambda (file)
     (local-time:timestamp> (modification-date file) timestamp)))
 
 (export-always 'extension=)
 (defun extension= (extension &rest more-extensions)
-  "Return a predicate for files that match on of the provided extensions."
+  "Return a predicate for files that match one of the provided extensions."
   (lambda (file)
     (some (lambda (ext)
             (string= ext (extension file)))
