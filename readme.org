@@ -126,7 +126,7 @@ File search and recursive listing:
 
   ;; List files matching all the given predicates.
   ;; The `fof/p' package contains numerous useful predicate or predicate
-  ;; generators you can compmlete against.
+  ;; generators you can complete against.
   (finder (fof/p:path~ "fil") (fof/p:extension= "lisp"))
   ; => (#F"~/co…/fof/file.lisp" #F"~/co…/fof/mediafile.lisp")
 
