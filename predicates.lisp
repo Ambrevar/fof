@@ -43,6 +43,39 @@
     (some (sera:eqs (kind file))
           (cons kind more-kinds))))
 
+(deftype user-specifier ()
+  "A `string' identifies the user name, a `fixnum' the user ID."
+  `(or string fixnum))
+
+(export-always 'user=)
+(-> user= (user-specifier &rest user-specifier) function)
+(defun user= (user &rest more-users)
+  "Return a predicate for files that match one of the provided `user-specifier's."
+  (lambda (file)
+    (let ((user-name (user file)))
+      (some (lambda (user)
+              (typecase user
+                (string (string= user-name user))
+                (number (= user (user-id file)))))
+            (cons user more-users)))))
+
+(deftype group-specifier ()
+  "A `string' identifies the group name, a `fixnum' the group ID."
+  `(or string fixnum))
+
+(export-always 'group=)
+(-> group= (group-specifier &rest group-specifier) function)
+(defun group= (group &rest more-groups)
+  "Return a predicate for files that match one of the provided `group-specifier's."
+  (lambda (file)
+    (let ((group-name (group file)))
+      (some (lambda (group)
+              (typecase group
+                (string (string= group-name group))
+                (number (= group (group-id file)))))
+            (cons group more-groups)))))
+
+
 (export-always 'path~)
 (defun path~ (path-element &rest more-path-elements)
   "Return a predicate that matches when one of the path elements is contained in
