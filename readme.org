@@ -28,8 +28,8 @@ Enable rapid file search, inspection and manipulation.
 
 - =finder= and =finder*= which return a list of files matching predicates.
 
-- A =fof:readtable= to enable the =#f"/path/to/file"= syntax, which mimicks =#p=
-  for pathnames.
+- A =fof:syntax= readtable to enable the =#f"/path/to/file"= syntax, which
+  mimicks =#p= for pathnames.
 
 In practice, it mostly supersedes:
 
@@ -60,7 +60,7 @@ Help welcome if you need support for another system.
   ; => #F"~/co…/fof/fof.asd"
 
   ;; Enable reader macro:
-  (named-readtables:in-readtable fof:readtable)
+  (named-readtables:in-readtable fof:syntax)
   ; => #<NAMED-READTABLE READTABLE {1003035363}>
 
   ;; Now you can use the #f syntax:
@@ -161,7 +161,7 @@ Load the separate =fof/mf= system to access the following extensions:
 - =mediafinder= and =mediafinder*=: just like =finder= and =finder*=
   respectively, but return =mediafile=s instead of =file=.
 
-- The =fof/mediafile:readtable=.
+- The =fof/mediafile:syntax=.
 
 Why the separate class and helpers?  Because collecting media metadata is much
 slower.  You should use =fof:finder= if you are not interested in the media

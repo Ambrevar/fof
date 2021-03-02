@@ -37,10 +37,10 @@
     (fof/file::read-until stream #\")
     (mediafile (fof/file::read-until stream #\"))))
 
-(export-always 'readtable)
-(named-readtables:defreadtable fof/mediafile::readtable
+(export-always 'syntax)
+(named-readtables:defreadtable fof/mediafile::syntax
   (:merge :standard)
-  ;; TODO: Can we merge fof/file::readtable instead of redefining #f?
+  ;; TODO: Can we merge fof/file::syntax instead of redefining #f?
   (:dispatch-macro-char #\# #\f #'fof/file::file-reader)
   (:dispatch-macro-char #\# #\m #'mediafile-reader))
 

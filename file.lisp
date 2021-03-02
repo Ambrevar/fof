@@ -355,8 +355,8 @@ If PARENT-DIRECTORY is not a parent of PATH, return PATH."
   (read-until stream #\")
   (file (read-until stream #\")))
 
-(export-always 'readtable)
-(named-readtables:defreadtable readtable
+(export-always 'syntax)
+(named-readtables:defreadtable fof/file::syntax
   (:merge :standard)
   (:dispatch-macro-char #\# #\f #'file-reader))
 
