@@ -11,6 +11,8 @@
   (:import-from #:str)
   (:import-from #:trivia #:match))
 (in-package fof/p)
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (trivial-package-local-nicknames:add-package-local-nickname :sera :serapeum))
 
 (export-always 'date<)
 (defun date< (timestamp)
@@ -28,8 +30,7 @@
 (defun extension= (extension &rest more-extensions)
   "Return a predicate for files that match one of the provided extensions."
   (lambda (file)
-    (some (lambda (ext)
-            (string= ext (extension file)))
+    (some (sera:equals (extension file))
           (cons extension more-extensions))))
 
 (export-always 'path~)
