@@ -16,7 +16,10 @@
 
 (defvar *touch-command* "touch") ; TODO: `utime' syscall binding is missing from Osicat.
 
-;; TODO: Use `file-attributes' when https://github.com/Shinmera/file-attributes/issues/1 is fixed.
+;; TODO: Use `file-attributes' when
+;; https://github.com/Shinmera/file-attributes/issues/1 is fixed.
+
+;; TODO: Add option to follow symlinks or not.
 
 ;; TODO: Run multiple disk writes within a transation?
 ;; Need proper POSIX bindings.  Can Osicat do all of them?
