@@ -322,7 +322,7 @@ If PARENT-DIRECTORY is not a parent of PATH, return PATH."
     ;; TODO: What do we do with non-existent files (e.g. unsaved emacs buffers)?  Just return nil?
     (setf (slot-value file 'path) (uiop:unix-namestring native-path))
     ;; Use `lstat' to _not_ follow symlinks, unlike `stat'.
-    (let ((stat (ignore-errors (osicat-posix::lstat native-path))))
+    (let ((stat (ignore-errors (osicat-posix:lstat native-path))))
       (if stat
           ;; From Osicat's `file-permissions':
           (flet ((stat-permissions (stat)
