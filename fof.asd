@@ -1,7 +1,7 @@
 #-asdf3.1 (error "`fof' requires ASDF 3.1")
 
 (defsystem "fof"
-  :version "0.0.0"
+  :version "0.1.0"
   :author "Pierre Neidhardt <mail@ambrevar.xyz>"
   :homepage "https://gitlab.com/ambrevar/fof"
   :licence "GPL3+"
