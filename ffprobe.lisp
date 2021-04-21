@@ -145,14 +145,15 @@
 (defun ffprobe (path)
   "Return a list of (MEDIA-FORMAT MEDIA-STREAMS...)."
   (let* ((json-string
-           (ignore-errors
+           (ignore-errors               ; TODO: Report errors instead?
             (uiop:run-program (list *ffprobe-command*
                                     "-v" "quiet"
                                     "-print_format" "json"
                                     "-show_format"
                                     "-show_streams"
                                     "--"
-                                    (write-to-string path))))))
+                                    path)
+                              :output '(:string :stripped t)))))
     (when json-string
       (let* ((json (cl-json:decode-json-from-string json-string))
              (format-args (json->media-args (alex:assoc-value json :format)))
