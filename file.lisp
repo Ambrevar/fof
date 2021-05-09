@@ -104,6 +104,18 @@
   "Useful so that `path' can be called both on a `file' or a `pathname'."
   (namestring p))
 
+(defmethod (setf path) (new-path (file file))
+  "Set FILE to a NEW-PATH.
+This renames the file."
+  (unless (handler-case (or (ignore-errors (rename-file (path file) new-path))
+                            ;; Fallback since `rename-file' does not work cross-device.
+                            (uiop:run-program (list "mv" (path file) new-path)))
+
+            (error (c)
+              (warn "Renaming ~s to ~s failed: ~a" (path file) new-path c)
+              :error))
+    (setf (path file) new-path)))
+
 (export-always 'user)
 (defmethod user ((file file))
   "Return the name of the user owning the file."
@@ -130,6 +142,15 @@
 If none, return the empty string unlike `pathname-type'."
   (or (pathname-type (path file))
       ""))
+
+(defmethod (setf extension) (new-extension (file file))
+  "Set the FILE extension to NEW-EXTENSION.
+This renames the file."
+  (setf (path file)
+        (str:concat (namestring (uiop:pathname-directory-pathname (path file)))
+                    (pathname-name (path file))
+                    "."
+                    new-extension)))
 
 (export-always 'directory?)
 (defmethod directory? ((file file))
