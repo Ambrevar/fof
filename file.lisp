@@ -523,7 +523,7 @@ For a more tunable finder, see `finder*'."
 (defun ls-l (&key human-readable?)
   "Mimicks Unix' `ls -l'."
   ;; TODO: Add support for file arguments?
-  (let* ((current-dir-entries (finder* :recur-predicates (list (match-depth< 2))))
+  (let* ((current-dir-entries (finder* :recur-predicates (list (constantly nil))))
          (size-column-width (max-width current-dir-entries #'size)))
     (dolist (file current-dir-entries)
       (format t (str:concat "~a~a ~a ~a ~a ~" (write-to-string size-column-width) "@a ~a ~a~%")
